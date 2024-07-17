@@ -1,0 +1,16 @@
+{
+  "filename": "aurora.png",
+  "file_type": "PNG image data, 1200 x 800, 8-bit/color RGB, non-interlaced",
+  "file_size": "1352 kB",
+  "modification_time": "2024:07:17 19:10:27+09:00",
+  "access_time": "2024:07:17 19:18:23+09:00",
+  "inode_change_time": "2024:07:17 19:18:21+09:00",
+  "image_width": 1200,
+  "image_height": 800,
+  "color_space": "sRGB",
+  "bit_depth": 8,
+  "forensic_notes": [
+    "Inode change time is 474 seconds after modification time",
+    "No camera or GPS data found. Possibly edited or from another source"
+  ]
+}

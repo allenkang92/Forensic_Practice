@@ -13,12 +13,18 @@ def analyze_file(filename):
     
     # exiftool로 메타데이터 얻기
     exif_info = run_command(['exiftool', '-j', filename])
-    exif_data = json.loads(exif_info)[0]
+    
+    try:
+        exif_data = json.loads(exif_info)[0]
+    except json.JSONDecodeError:
+        print("Error: Unable to parse exiftool output as JSON.")
+        print("exiftool output:", exif_info)
+        exif_data = {}
     
     # 분석 결과
     analysis = {
         'filename': filename,
-        'file_type': file_info.split(':')[1].strip(),
+        'file_type': file_info.split(':')[1].strip() if ':' in file_info else 'Unknown',
         'file_size': exif_data.get('FileSize', 'Unknown'),
         'modification_time': exif_data.get('FileModifyDate', 'Unknown'),
         'access_time': exif_data.get('FileAccessDate', 'Unknown'),
@@ -37,10 +43,14 @@ def analyze_file(filename):
         forensic_analysis.append("File is hidden (starts with '.')")
     
     # 시간 정보 분석
-    mod_time = datetime.strptime(analysis['modification_time'], "%Y:%m:%d %H:%M:%S%z")
-    inode_time = datetime.strptime(analysis['inode_change_time'], "%Y:%m:%d %H:%M:%S%z")
-    if (inode_time - mod_time).seconds > 0:
-        forensic_analysis.append(f"Inode change time is {(inode_time - mod_time).seconds} seconds after modification time")
+    if analysis['modification_time'] != 'Unknown' and analysis['inode_change_time'] != 'Unknown':
+        try:
+            mod_time = datetime.strptime(analysis['modification_time'], "%Y:%m:%d %H:%M:%S%z")
+            inode_time = datetime.strptime(analysis['inode_change_time'], "%Y:%m:%d %H:%M:%S%z")
+            if (inode_time - mod_time).seconds > 0:
+                forensic_analysis.append(f"Inode change time is {(inode_time - mod_time).seconds} seconds after modification time")
+        except ValueError:
+            forensic_analysis.append("Unable to parse time information")
     
     # EXIF 데이터 체크
     if 'GPSPosition' not in exif_data and 'Make' not in exif_data:
@@ -51,7 +61,11 @@ def analyze_file(filename):
     return analysis
 
 def main():
-    filename = '.aurora.png'  # 분석할 파일 이름
+    filename = 'aurora.png'  # 분석할 파일 이름
+    if not os.path.exists(filename):
+        print(f"Error: File '{filename}' not found.")
+        return
+    
     result = analyze_file(filename)
     
     print(json.dumps(result, indent=2))
